@@ -7,6 +7,7 @@ export const usePhotos = page => {
     () => fetchPhotos(page),
     {
       enabled: true,
+      retry: false,
     },
   );
   return {data, isLoading, isError, refetch};

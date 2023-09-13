@@ -6,8 +6,7 @@ import {
   ActivityIndicator,
   RefreshControl,
 } from 'react-native';
-import React, {useCallback, useContext, useState} from 'react';
-import {usePhotos} from '../../hooks/usePhoto';
+import React, {useCallback, useContext} from 'react';
 import DataContext from '../../context/DataContext';
 import {styles} from './styles';
 import ProgressiveFastImage from '@freakycoder/react-native-progressive-fast-image';
@@ -21,6 +20,7 @@ const ListScreen = ({navigation}) => {
     data,
     nextPage,
     isLoading,
+    isError,
     refreshData,
     isRefreshing,
     searchQuery,
@@ -41,24 +41,23 @@ const ListScreen = ({navigation}) => {
         onPress={() => goToDetail(item)}>
         <ProgressiveFastImage
           source={{
-            uri: item.url,
+            uri: item?.url,
           }}
           style={styles.imageStyle}
           loadingSource={require('../../assets/gif/loading.gif')}
           imageAnimationDuration={2000}
           loadingImageStyle={{width: '100%', height: '100%'}}
         />
-        <Text>{item.title}</Text>
+        <Text>{item?.title}</Text>
       </TouchableOpacity>
     );
   };
 
   const renderFooter = () => {
+    if (isError) return null;
     if (isLoading) {
       return <ActivityIndicator size="large" color="#000" />;
-    } else {
-      return null;
-    }
+    } else return null;
   };
 
   const onReachEnd = () => {
@@ -67,9 +66,27 @@ const ListScreen = ({navigation}) => {
     }
   };
 
+  const renderEmptyComponent = () => {
+    if (isError) {
+      return (
+        <View style={styles.emptyContainer}>
+          <Text>Something went wrong!</Text>
+        </View>
+      );
+    } else {
+      return (
+        <View style={styles.emptyContainer}>
+          <Text>No data found!</Text>
+        </View>
+      );
+    }
+  };
+
   return (
     <View style={styles.container}>
-      <SearchBar value={searchQuery} onChange={setSearchQuery} />
+      {filteredData.length > 0 && (
+        <SearchBar value={searchQuery} onChange={setSearchQuery} />
+      )}
       <FlatList
         data={filteredData}
         renderItem={renderItem}
@@ -80,6 +97,7 @@ const ListScreen = ({navigation}) => {
         refreshControl={
           <RefreshControl refreshing={isRefreshing} onRefresh={refreshData} />
         }
+        ListEmptyComponent={renderEmptyComponent}
       />
     </View>
   );
